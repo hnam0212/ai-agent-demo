@@ -1,5 +1,3 @@
-# docker-compose.yml
-
 version: '3.8'
 
 services:
@@ -16,12 +14,33 @@ services:
     build:
       context: ./vector
       dockerfile: Dockerfile
+    container_name: vector_service
     env_file: .env
     ports:
       - "8000:8000"
+    volumes:
+      - ./models_cache:/app/models_cache  # Shared model cache
     depends_on:
-     - qdrant
+      qdrant:
+        condition: service_started
+    restart: unless-stopped
 
+  agent-service:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    container_name: agent_service
+    env_file: .env
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./models_cache:/app/models_cache  # Shared model cache
+    depends_on:
+      qdrant:
+        condition: service_started
+      document-registry-service:
+        condition: service_started
+    restart: unless-stopped
 
 volumes:
   qdrant_data: {}

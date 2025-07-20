@@ -1,14 +1,15 @@
 import os
 import uuid
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
-from langchain_community.document_loaders import WebBaseLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from fastembed import TextEmbedding
-from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct
 from typing import List
+
 from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, HTTPException
+from fastembed import TextEmbedding
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import WebBaseLoader
+from pydantic import BaseModel
+from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, PointStruct, VectorParams
 
 load_dotenv()
 
@@ -19,7 +20,7 @@ QDRANT_URL = os.getenv("QDRANT_URL")
 MODEL_NAME= os.getenv("MODEL_NAME")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 
-embedding_model = TextEmbedding(model_name=MODEL_NAME)
+embedding_model = TextEmbedding(model_name=MODEL_NAME, cache_dir="/app/models_cache")
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=200
