@@ -1,6 +1,14 @@
+import os
+
 import streamlit as st
 from agent_executor import agent
+from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
+from langfuse.langchain import CallbackHandler
+
+load_dotenv()
+
+langfuse_handler = CallbackHandler()
 
 # Page config
 st.set_page_config(
@@ -38,7 +46,7 @@ if prompt := st.chat_input("Ask me anything about Larion documents..."):
                 # Get response from agent
                 response = agent.invoke({
                     "messages": [HumanMessage(content=prompt)]
-                })
+                }, config={"callbacks": [langfuse_handler]})
                 
                 # Extract the assistant's response
                 assistant_message = response["messages"][-1].content

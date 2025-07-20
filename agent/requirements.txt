@@ -7,3 +7,4 @@ langgraph
 fastembed
 qdrant-client
 python-dotenv
+langfuse
