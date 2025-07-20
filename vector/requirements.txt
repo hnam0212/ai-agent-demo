@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+langchain
+langchain-community
+beautifulsoup4
+pydantic
+qdrant-client[fastembed]>=1.14.2
