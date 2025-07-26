@@ -7,6 +7,9 @@ from langchain_core.messages import HumanMessage
 from langchain_qdrant import QdrantVectorStore, RetrievalMode
 from langgraph.prebuilt import create_react_agent
 from qdrant_client import QdrantClient, models
+from qdrant_client import QdrantClient
+from qdrant_client.http.models import VectorParams, Distance
+
 
 load_dotenv()
 
@@ -27,6 +30,14 @@ llm = ChatGoogleGenerativeAI(
     max_retries=2,
     # other params...
 )
+
+vectordb_client = QdrantClient(host=QDRANT_URL, port=6333)  # adjust host/port as needed
+
+if COLLECTION_NAME not in [c.name for c in vectordb_client.get_collections().collections]:
+    vectordb_client.create_collection(
+        collection_name=COLLECTION_NAME,
+        vectors_config=VectorParams(size=1536, distance=Distance.COSINE)
+    )
 
 retriever = QdrantVectorStore.from_existing_collection(
     url=QDRANT_URL,
