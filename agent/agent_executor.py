@@ -8,10 +8,8 @@ from langchain_qdrant import QdrantVectorStore, RetrievalMode
 from langgraph.prebuilt import create_react_agent
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.models import VectorParams, Distance
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph import START, MessagesState, StateGraph
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+from langgraph.checkpoint.memory import InMemorySaver
 
 load_dotenv()
 
@@ -54,26 +52,10 @@ retriever_tools = create_retriever_tool(
     
 )
 
-
-# Define a new graph
-workflow = StateGraph(state_schema=MessagesState)
-
-# Define the function that calls the model
-def call_model(state: MessagesState):
-    response = agent.invoke(state["messages"])
-    return {"messages": response}
-
-# Define the (single) node in the graph
-workflow.add_edge(START, "model")
-workflow.add_node("model", call_model)
-
-
+memory = InMemorySaver()
 agent = create_react_agent(
     model=llm,
     tools=[retriever_tools],
     prompt="You are an assitant agent",
+    checkpointer=memory,
 )
-
-# Add memory
-memory = MemorySaver()
-app = workflow.compile(checkpointer=memory)
