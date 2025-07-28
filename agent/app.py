@@ -3,7 +3,7 @@ import os
 import streamlit as st
 from agent_executor import agent
 from dotenv import load_dotenv
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage
 from langfuse.langchain import CallbackHandler
 
 load_dotenv()
@@ -31,23 +31,33 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # Accept user input
-if prompt := st.chat_input("Ask me anything about Larion documents..."):
+if user_query := st.chat_input("Ask me anything about Larion documents..."):
     # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.messages.append({"role": "user", "content": user_query})
     
     # Display user message in chat message container
     with st.chat_message("user"):
-        st.markdown(prompt)
-    
+        st.markdown(user_query)
+
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
+                # Prepare conversation history for the agent
+                conversation = [
+                    HumanMessage(content=msg["content"]) if msg["role"] == "user"
+                    else AIMessage(content=msg["content"])
+                    for msg in st.session_state.messages
+                ]
+
                 # Get response from agent
                 response = agent.invoke({
-                    "messages": [HumanMessage(content=prompt)]
-                }, config={"callbacks": [langfuse_handler]})
-                
+                    "messages": conversation
+                }, config={
+                    "callbacks": [langfuse_handler],
+                    "configurable": {"thread_id": "abc123"}
+                })
+
                 # Extract the assistant's response
                 assistant_message = response["messages"][-1].content
                 
